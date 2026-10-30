@@ -3,7 +3,9 @@ import { Layout } from './components/Layout'
 import { Spinner } from './components/Spinner'
 import { AuthProvider, useAuth } from './lib/auth'
 import { Admin } from './pages/Admin'
-import { Home } from './pages/Home'
+import { Feed } from './pages/Feed'
+import { IdeaDetail } from './pages/IdeaDetail'
+import { IdeaForm } from './pages/IdeaForm'
 import { Login } from './pages/Login'
 import { NotAllowed } from './pages/NotAllowed'
 import { Profile } from './pages/Profile'
@@ -17,7 +19,10 @@ function Gate() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route index element={<Home />} />
+        <Route index element={<Feed />} />
+        <Route path="ideas/new" element={<IdeaForm key="new" />} />
+        <Route path="ideas/:id" element={<IdeaDetail />} />
+        <Route path="ideas/:id/edit" element={<IdeaForm key="edit" />} />
         <Route path="team" element={<Team />} />
         <Route path="profile" element={<Profile />} />
         <Route path="admin" element={<Admin />} />

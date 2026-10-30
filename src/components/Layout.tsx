@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { Avatar } from './Avatar'
+import { InstallHint } from './InstallHint'
 
 const tabs = [
   { to: '/', label: 'Ideas', icon: '💡' },
@@ -42,6 +43,7 @@ export function Layout() {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-5">
+        <InstallHint />
         <Outlet />
       </main>
 

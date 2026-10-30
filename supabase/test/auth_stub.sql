@@ -7,3 +7,4 @@ create function auth.email() returns text language sql stable as $$ select email
 grant usage on schema public, auth to anon, authenticated;
 alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
 alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+create publication supabase_realtime;
