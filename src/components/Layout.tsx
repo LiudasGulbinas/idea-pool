@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { Avatar } from './Avatar'
 import { InstallHint } from './InstallHint'
+import { IntroVideo, openIntro } from './IntroVideo'
 
 const tabs = [
   { to: '/', label: 'Ideas', icon: '💡' },
@@ -35,8 +36,15 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
+          <button
+            onClick={openIntro}
+            className="ml-auto rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100 sm:ml-2"
+            title="Watch the 30-second tour"
+          >
+            ▶ Tour
+          </button>
           {member && (
-            <NavLink to="/profile" className="ml-auto sm:ml-2">
+            <NavLink to="/profile" className="sm:ml-1">
               <Avatar member={member} size={32} />
             </NavLink>
           )}
@@ -44,6 +52,7 @@ export function Layout() {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-5">
+        <IntroVideo />
         <InstallHint />
         <Outlet />
       </main>

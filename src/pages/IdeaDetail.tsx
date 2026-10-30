@@ -11,7 +11,7 @@ import { toggleLike } from '../lib/likes'
 import { supabase } from '../lib/supabase'
 import { IDEA_SELECT, STATUSES, memberName, timeAgo, type Idea, type IdeaStatus, type Member } from '../lib/types'
 
-type Liker = { member_id: string; member: Pick<Member, 'display_name' | 'email' | 'avatar_color'> }
+type Liker = { member_id: string; member: Pick<Member, 'display_name' | 'email' | 'avatar_color' | 'avatar_url'> }
 
 const SECTIONS = [
   { key: 'problem', label: '😣 Problem' },
@@ -36,7 +36,7 @@ export function IdeaDetail() {
   const loadLikes = useCallback(async () => {
     const { data } = await supabase
       .from('likes')
-      .select('member_id, member:members!likes_member_id_fkey(display_name, email, avatar_color)')
+      .select('member_id, member:members!likes_member_id_fkey(display_name, email, avatar_color, avatar_url)')
       .eq('idea_id', id!)
       .order('created_at')
     setLikers((data as unknown as Liker[]) ?? [])

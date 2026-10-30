@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { startAnalysis, scoreColor } from '../lib/ai'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
-import { timeAgo, type Analysis } from '../lib/types'
+import { timeAgo, type Analysis, type Member } from '../lib/types'
+import { Avatar } from './Avatar'
 
 export function AnalysisPanel({ ideaId }: { ideaId: string }) {
   const { member } = useAuth()
@@ -146,7 +147,7 @@ export function AnalysisPanel({ ideaId }: { ideaId: string }) {
 
 export function TeamFitPanel({ ideaId }: { ideaId: string }) {
   const [fit, setFit] = useState<Analysis['team_fit'] | undefined>(undefined)
-  const [colors, setColors] = useState<Record<string, string>>({})
+  const [people, setPeople] = useState<Record<string, Pick<Member, 'display_name' | 'email' | 'avatar_color' | 'avatar_url'>>>({})
 
   const load = useCallback(async () => {
     const { data } = await supabase.from('ai_analysis').select('team_fit').eq('idea_id', ideaId).maybeSingle()
@@ -155,7 +156,10 @@ export function TeamFitPanel({ ideaId }: { ideaId: string }) {
 
   useEffect(() => {
     load()
-    supabase.from('members').select('id, avatar_color').then(({ data }) => setColors(Object.fromEntries((data ?? []).map((m) => [m.id, m.avatar_color]))))
+    supabase
+      .from('members')
+      .select('id, display_name, email, avatar_color, avatar_url')
+      .then(({ data }) => setPeople(Object.fromEntries(((data ?? []) as Member[]).map((m) => [m.id, m]))))
     const channel = supabase
       .channel(`teamfit-${ideaId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'ai_analysis', filter: `idea_id=eq.${ideaId}` }, () => load())
@@ -175,8 +179,8 @@ export function TeamFitPanel({ ideaId }: { ideaId: string }) {
         <ul className="space-y-3">
           {fit.members.map((m) => (
             <li key={m.member_id} className="flex gap-3">
-              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-bold text-white" style={{ background: colors[m.member_id] ?? '#6366f1' }}>
-                {m.name.slice(0, 1).toUpperCase()}
+              <span className="mt-0.5">
+                <Avatar member={people[m.member_id] ?? { display_name: m.name, email: m.name, avatar_color: '#6366f1', avatar_url: null }} size={36} />
               </span>
               <div>
                 <div className="font-semibold">{m.name} <span className="ml-1 rounded-md bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">{m.role}</span></div>

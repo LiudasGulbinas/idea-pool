@@ -9,7 +9,7 @@ export interface RankedIdea extends Idea {
   analysis: Pick<Analysis, 'status' | 'overall_score' | 'verdict' | 'criteria' | 'team_fit'> | null
 }
 
-const VOTE_SELECT = 'idea_id, member_id, points, member:members!votes_member_id_fkey(display_name, email, avatar_color)'
+const VOTE_SELECT = 'idea_id, member_id, points, member:members!votes_member_id_fkey(display_name, email, avatar_color, avatar_url)'
 
 /** Shortlisted and chosen ideas ranked by votes, then AI score, then likes; updates live. */
 export function useShortlist() {

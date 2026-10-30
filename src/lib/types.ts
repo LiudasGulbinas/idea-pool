@@ -6,6 +6,8 @@ export interface Member {
   email: string
   display_name: string | null
   avatar_color: string
+  avatar_url: string | null
+  intro_seen_at: string | null
   role: Role
   created_at: string
 }
@@ -37,10 +39,10 @@ export interface Idea {
   hidden: boolean
   created_at: string
   updated_at: string
-  author?: Pick<Member, 'id' | 'display_name' | 'email' | 'avatar_color'>
+  author?: Pick<Member, 'id' | 'display_name' | 'email' | 'avatar_color' | 'avatar_url'>
 }
 
-export const IDEA_SELECT = '*, author:members!ideas_author_id_fkey(id, display_name, email, avatar_color)'
+export const IDEA_SELECT = '*, author:members!ideas_author_id_fkey(id, display_name, email, avatar_color, avatar_url)'
 
 export function timeAgo(iso: string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000
@@ -63,10 +65,10 @@ export interface Comment {
   body: string
   created_at: string
   updated_at: string
-  author?: Pick<Member, 'id' | 'display_name' | 'email' | 'avatar_color'>
+  author?: Pick<Member, 'id' | 'display_name' | 'email' | 'avatar_color' | 'avatar_url'>
 }
 
-export const COMMENT_SELECT = '*, author:members!comments_author_id_fkey(id, display_name, email, avatar_color)'
+export const COMMENT_SELECT = '*, author:members!comments_author_id_fkey(id, display_name, email, avatar_color, avatar_url)'
 
 export type AnalysisStatus = 'pending' | 'running' | 'done' | 'failed'
 
@@ -123,5 +125,5 @@ export interface Vote {
   idea_id: string
   member_id: string
   points: number
-  member?: Pick<Member, 'display_name' | 'email' | 'avatar_color'>
+  member?: Pick<Member, 'display_name' | 'email' | 'avatar_color' | 'avatar_url'>
 }
