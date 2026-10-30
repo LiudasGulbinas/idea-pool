@@ -97,3 +97,8 @@ create policy "members: self or admin edits" on public.members
 drop policy if exists "members: admin removes" on public.members;
 create policy "members: admin removes" on public.members
   for delete to authenticated using (public.is_admin() and user_id is distinct from auth.uid());
+
+-- Newer Supabase projects don't grant API access automatically; RLS above still decides who sees what.
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on public.members to authenticated;
+grant execute on function public.current_member_id(), public.is_member(), public.is_admin() to authenticated;

@@ -17,7 +17,7 @@ export function Login() {
     const { data: allowed, error: checkErr } = await supabase.rpc('email_allowed', { p_email: clean })
     if (checkErr) {
       setBusy(false)
-      return setError('Could not reach the server. Please try again in a moment.')
+      return setError(`Could not reach the server. Please try again in a moment. (Details: ${checkErr.message}${checkErr.code ? ` [${checkErr.code}]` : ''})`)
     }
     if (!allowed) {
       setBusy(false)
