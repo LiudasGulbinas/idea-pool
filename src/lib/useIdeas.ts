@@ -1,28 +1,51 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
-import { IDEA_SELECT, type Idea } from './types'
+import { IDEA_SELECT, type Idea, type Like } from './types'
 
-/** All visible ideas, kept up to date live as teammates post or edit. */
-export function useIdeas() {
-  const [ideas, setIdeas] = useState<Idea[] | null>(null)
+export interface FeedIdea extends Idea {
+  likeCount: number
+  likedByMe: boolean
+  commentCount: number
+}
+
+/** All visible ideas with like/comment counts, kept up to date live as teammates post, like or comment. */
+export function useIdeas(memberId: string | undefined) {
+  const [ideas, setIdeas] = useState<FeedIdea[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from('ideas').select(IDEA_SELECT).order('created_at', { ascending: false })
-    if (error) setError(error.message)
-    else setIdeas(data as Idea[])
-  }, [])
+    const [ideasRes, likesRes, commentsRes] = await Promise.all([
+      supabase.from('ideas').select(IDEA_SELECT).order('created_at', { ascending: false }),
+      supabase.from('likes').select('idea_id, member_id'),
+      supabase.from('comments').select('idea_id'),
+    ])
+    const err = ideasRes.error ?? likesRes.error ?? commentsRes.error
+    if (err) return setError(err.message)
+    const likes = likesRes.data as Like[]
+    const comments = commentsRes.data as { idea_id: string }[]
+    setError(null)
+    setIdeas(
+      (ideasRes.data as Idea[]).map((i) => ({
+        ...i,
+        likeCount: likes.filter((l) => l.idea_id === i.id).length,
+        likedByMe: likes.some((l) => l.idea_id === i.id && l.member_id === memberId),
+        commentCount: comments.filter((c) => c.idea_id === i.id).length,
+      })),
+    )
+  }, [memberId])
 
   useEffect(() => {
     load()
     const channel = supabase
       .channel('ideas-feed')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas' }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'likes' }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => load())
       .subscribe()
     return () => {
       supabase.removeChannel(channel)
     }
   }, [load])
 
-  return { ideas, error, reload: load }
+  return { ideas, setIdeas, error, reload: load }
 }

@@ -1,26 +1,49 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
+import { LikeButton } from '../components/LikeButton'
 import { Spinner } from '../components/Spinner'
 import { StatusBadge } from '../components/StatusBadge'
 import { useAuth } from '../lib/auth'
 import { STATUSES, memberName, timeAgo, type IdeaStatus } from '../lib/types'
-import { useIdeas } from '../lib/useIdeas'
+import { toggleLike } from '../lib/likes'
+import { useIdeas, type FeedIdea } from '../lib/useIdeas'
+
+type Sort = 'newest' | 'liked' | 'discussed'
+const SORTS: Record<Sort, { label: string; compare: (a: FeedIdea, b: FeedIdea) => number }> = {
+  newest: { label: 'Newest', compare: (a, b) => b.created_at.localeCompare(a.created_at) },
+  liked: { label: 'Most liked', compare: (a, b) => b.likeCount - a.likeCount || b.created_at.localeCompare(a.created_at) },
+  discussed: { label: 'Most discussed', compare: (a, b) => b.commentCount - a.commentCount || b.created_at.localeCompare(a.created_at) },
+}
 
 export function Feed() {
   const { member } = useAuth()
-  const { ideas, error } = useIdeas()
+  const { ideas, setIdeas, error, reload } = useIdeas(member?.id)
+  const [sort, setSort] = useState<Sort>('newest')
   const [status, setStatus] = useState<IdeaStatus | 'all'>('all')
   const [tag, setTag] = useState<string>('all')
 
   const allTags = useMemo(() => [...new Set((ideas ?? []).flatMap((i) => i.tags))].sort(), [ideas])
   const shown = (ideas ?? []).filter((i) => (status === 'all' || i.status === status) && (tag === 'all' || i.tags.includes(tag)))
+    .sort(SORTS[sort].compare)
+
+  async function like(idea: FeedIdea) {
+    if (!member) return
+    // Update the heart instantly; the live subscription confirms it a moment later.
+    setIdeas((list) => list && list.map((i) => (i.id === idea.id ? { ...i, likedByMe: !i.likedByMe, likeCount: i.likeCount + (i.likedByMe ? -1 : 1) } : i)))
+    if (await toggleLike(idea.id, member.id, idea.likedByMe)) reload()
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold">Ideas {ideas && <span className="text-slate-400">({ideas.length})</span>}</h1>
-        <Link to="/ideas/new" className="btn-primary hidden sm:inline-flex">+ New idea</Link>
+        <div className="flex items-center gap-2">
+          <select className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-sm" value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label="Sort">
+            {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>↕ {v.label}</option>)}
+          </select>
+          <Link to="/ideas/new" className="btn-primary hidden sm:inline-flex">+ New idea</Link>
+        </div>
       </div>
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
@@ -72,9 +95,13 @@ export function Feed() {
             )}
             <div className="mt-3 flex items-center gap-2 text-sm text-slate-500">
               {idea.author && <Avatar member={idea.author} size={22} />}
-              <span>{idea.author ? memberName(idea.author) : 'Someone'}</span>
+              <span className="truncate">{idea.author ? memberName(idea.author) : 'Someone'}</span>
               <span>·</span>
               <span>{timeAgo(idea.created_at)}</span>
+              <span className="ml-auto flex items-center gap-2">
+                <span className="text-slate-500">💬 {idea.commentCount}</span>
+                <LikeButton small liked={idea.likedByMe} count={idea.likeCount} onClick={() => like(idea)} />
+              </span>
             </div>
           </Link>
         ))}

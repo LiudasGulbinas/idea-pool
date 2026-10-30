@@ -50,3 +50,20 @@ export function timeAgo(iso: string) {
   if (s < 86400 * 7) return `${Math.floor(s / 86400)} d ago`
   return new Date(iso).toLocaleDateString()
 }
+
+export interface Like {
+  idea_id: string
+  member_id: string
+}
+
+export interface Comment {
+  id: string
+  idea_id: string
+  author_id: string
+  body: string
+  created_at: string
+  updated_at: string
+  author?: Pick<Member, 'id' | 'display_name' | 'email' | 'avatar_color'>
+}
+
+export const COMMENT_SELECT = '*, author:members!comments_author_id_fkey(id, display_name, email, avatar_color)'

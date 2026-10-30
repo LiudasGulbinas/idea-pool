@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
+import { Comments } from '../components/Comments'
+import { LikeButton } from '../components/LikeButton'
 import { Spinner } from '../components/Spinner'
 import { StatusBadge } from '../components/StatusBadge'
 import { useAuth } from '../lib/auth'
+import { toggleLike } from '../lib/likes'
 import { supabase } from '../lib/supabase'
-import { IDEA_SELECT, STATUSES, memberName, timeAgo, type Idea, type IdeaStatus } from '../lib/types'
+import { IDEA_SELECT, STATUSES, memberName, timeAgo, type Idea, type IdeaStatus, type Member } from '../lib/types'
+
+type Liker = { member_id: string; member: Pick<Member, 'display_name' | 'email' | 'avatar_color'> }
 
 const SECTIONS = [
   { key: 'problem', label: '😣 Problem' },
@@ -19,6 +24,7 @@ export function IdeaDetail() {
   const navigate = useNavigate()
   const { member } = useAuth()
   const [idea, setIdea] = useState<Idea | null | undefined>(undefined)
+  const [likers, setLikers] = useState<Liker[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
@@ -26,16 +32,27 @@ export function IdeaDetail() {
     setIdea(data as Idea | null)
   }, [id])
 
+  const loadLikes = useCallback(async () => {
+    const { data } = await supabase
+      .from('likes')
+      .select('member_id, member:members!likes_member_id_fkey(display_name, email, avatar_color)')
+      .eq('idea_id', id!)
+      .order('created_at')
+    setLikers((data as unknown as Liker[]) ?? [])
+  }, [id])
+
   useEffect(() => {
     load()
+    loadLikes()
     const channel = supabase
       .channel(`idea-${id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ideas', filter: `id=eq.${id}` }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'likes', filter: `idea_id=eq.${id}` }, () => loadLikes())
       .subscribe()
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [id, load])
+  }, [id, load, loadLikes])
 
   if (idea === undefined) return <Spinner />
   if (idea === null)
@@ -48,6 +65,15 @@ export function IdeaDetail() {
 
   const isAuthor = member?.id === idea.author_id
   const isAdmin = member?.role === 'admin'
+  const likedByMe = likers.some((l) => l.member_id === member?.id)
+
+  async function like() {
+    if (!member) return
+    setLikers((ls) => (likedByMe ? ls.filter((l) => l.member_id !== member.id) : [...ls, { member_id: member.id, member }]))
+    const err = await toggleLike(idea!.id, member.id, likedByMe)
+    if (err) setError(err.message)
+    loadLikes()
+  }
 
   async function update(patch: Partial<Idea>) {
     setError(null)
@@ -96,6 +122,18 @@ export function IdeaDetail() {
           </div>
         )}
 
+        <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
+          <LikeButton liked={likedByMe} count={likers.length} onClick={like} />
+          {likers.length > 0 && (
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <div className="flex -space-x-2">
+                {likers.slice(0, 6).map((l) => <span key={l.member_id} className="rounded-full ring-2 ring-white"><Avatar member={l.member} size={26} /></span>)}
+              </div>
+              <span className="truncate">{likers.slice(0, 3).map((l) => memberName(l.member)).join(', ')}{likers.length > 3 && ` +${likers.length - 3}`}</span>
+            </div>
+          )}
+        </div>
+
         {(isAuthor || isAdmin) && (
           <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4">
             {isAuthor && <Link to={`/ideas/${idea.id}/edit`} className="btn-ghost">✏️ Edit</Link>}
@@ -126,7 +164,9 @@ export function IdeaDetail() {
 
       {error && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
-      <div className="card p-5 text-sm text-slate-500">💬 Likes, comments and Claude's investor analysis are coming in the next stages.</div>
+      <Comments ideaId={idea.id} />
+
+      <div className="card p-5 text-sm text-slate-500">🤖 Claude's investor analysis and team fit are coming in the next stage.</div>
     </div>
   )
 }
