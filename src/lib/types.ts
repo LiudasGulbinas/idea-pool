@@ -113,3 +113,15 @@ export interface AiSettings {
   instructions: string
   criteria: Criterion[]
 }
+
+export interface VotingSettings {
+  vote_budget: number
+  voting_open: boolean
+}
+
+export interface Vote {
+  idea_id: string
+  member_id: string
+  points: number
+  member?: Pick<Member, 'display_name' | 'email' | 'avatar_color'>
+}

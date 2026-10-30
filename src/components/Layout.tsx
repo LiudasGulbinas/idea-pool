@@ -5,6 +5,7 @@ import { InstallHint } from './InstallHint'
 
 const tabs = [
   { to: '/', label: 'Ideas', icon: '💡' },
+  { to: '/shortlist', label: 'Shortlist', icon: '🏁' },
   { to: '/team', label: 'Team', icon: '👥' },
   { to: '/profile', label: 'Me', icon: '🙂' },
 ]

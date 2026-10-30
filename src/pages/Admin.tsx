@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { AiSettingsCard } from '../components/AiSettingsCard'
 import { Avatar } from '../components/Avatar'
+import { VotingAdminCard } from '../components/VotingAdminCard'
 import { Spinner } from '../components/Spinner'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
@@ -85,6 +86,7 @@ export function Admin() {
           </div>
         ))}
       </div>
+      <VotingAdminCard />
       <AiSettingsCard />
     </div>
   )
