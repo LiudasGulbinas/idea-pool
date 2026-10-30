@@ -2,7 +2,6 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { Spinner } from './components/Spinner'
 import { AuthProvider, useAuth } from './lib/auth'
-import { isConfigured } from './lib/supabase'
 import { Admin } from './pages/Admin'
 import { Home } from './pages/Home'
 import { Login } from './pages/Login'
@@ -29,13 +28,6 @@ function Gate() {
 }
 
 export default function App() {
-  if (!isConfigured) {
-    return (
-      <div className="p-6 text-center text-slate-600">
-        The app is not connected to the database yet (missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).
-      </div>
-    )
-  }
   return (
     <BrowserRouter>
       <AuthProvider>
