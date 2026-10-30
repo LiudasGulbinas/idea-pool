@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Avatar } from '../components/Avatar'
+import { SkillsCard } from '../components/SkillsCard'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
 
@@ -61,6 +62,7 @@ export function Profile() {
         <button className="btn-primary w-full sm:w-auto">{saved ? 'Saved ✓' : 'Save'}</button>
         {error && <p className="text-sm text-red-600">{error}</p>}
       </form>
+      <SkillsCard />
       <button className="btn-ghost w-full sm:w-auto" onClick={signOut}>Sign out</button>
     </div>
   )

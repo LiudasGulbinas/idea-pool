@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { AnalysisPanel, TeamFitPanel } from '../components/AnalysisPanel'
 import { Avatar } from '../components/Avatar'
 import { Comments } from '../components/Comments'
 import { LikeButton } from '../components/LikeButton'
@@ -164,9 +165,9 @@ export function IdeaDetail() {
 
       {error && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
+      <AnalysisPanel ideaId={idea.id} />
+      <TeamFitPanel ideaId={idea.id} />
       <Comments ideaId={idea.id} />
-
-      <div className="card p-5 text-sm text-slate-500">🤖 Claude's investor analysis and team fit are coming in the next stage.</div>
     </div>
   )
 }

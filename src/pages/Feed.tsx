@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
 import { LikeButton } from '../components/LikeButton'
+import { ScoreBadge } from '../components/ScoreBadge'
 import { Spinner } from '../components/Spinner'
 import { StatusBadge } from '../components/StatusBadge'
 import { useAuth } from '../lib/auth'
@@ -9,11 +10,12 @@ import { STATUSES, memberName, timeAgo, type IdeaStatus } from '../lib/types'
 import { toggleLike } from '../lib/likes'
 import { useIdeas, type FeedIdea } from '../lib/useIdeas'
 
-type Sort = 'newest' | 'liked' | 'discussed'
+type Sort = 'newest' | 'liked' | 'discussed' | 'score'
 const SORTS: Record<Sort, { label: string; compare: (a: FeedIdea, b: FeedIdea) => number }> = {
   newest: { label: 'Newest', compare: (a, b) => b.created_at.localeCompare(a.created_at) },
   liked: { label: 'Most liked', compare: (a, b) => b.likeCount - a.likeCount || b.created_at.localeCompare(a.created_at) },
   discussed: { label: 'Most discussed', compare: (a, b) => b.commentCount - a.commentCount || b.created_at.localeCompare(a.created_at) },
+  score: { label: 'Highest AI score', compare: (a, b) => (b.analysis?.overall_score ?? -1) - (a.analysis?.overall_score ?? -1) || b.created_at.localeCompare(a.created_at) },
 }
 
 export function Feed() {
@@ -84,10 +86,14 @@ export function Feed() {
           <Link key={idea.id} to={`/ideas/${idea.id}`} className="card block p-4 transition hover:border-brand-300 hover:shadow-md">
             <div className="flex items-start gap-2">
               <h2 className="flex-1 text-lg leading-snug font-bold">{idea.title}</h2>
+              <ScoreBadge score={idea.analysis?.overall_score} status={idea.analysis?.status} />
               {idea.status !== 'new' && <StatusBadge status={idea.status} />}
               {idea.hidden && <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Hidden</span>}
             </div>
             <p className="mt-1 text-slate-700">{idea.pitch}</p>
+            {!!idea.analysis?.team_fit?.members.length && (
+              <p className="mt-2 text-xs text-slate-500">👥 Best fit: <span className="font-medium text-slate-700">{idea.analysis.team_fit.members.map((m) => m.name).join(', ')}</span></p>
+            )}
             {idea.tags.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {idea.tags.map((t) => <span key={t} className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">#{t}</span>)}

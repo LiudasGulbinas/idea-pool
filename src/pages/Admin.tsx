@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { AiSettingsCard } from '../components/AiSettingsCard'
 import { Avatar } from '../components/Avatar'
 import { Spinner } from '../components/Spinner'
 import { useAuth } from '../lib/auth'
@@ -84,6 +85,7 @@ export function Admin() {
           </div>
         ))}
       </div>
+      <AiSettingsCard />
     </div>
   )
 }

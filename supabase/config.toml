@@ -1,0 +1,8 @@
+# Used by `supabase functions deploy` (GitHub Actions). Functions check the caller's login themselves.
+project_id = "tciicfmrixbzyrkkjbnl"
+
+[functions.analyze-idea]
+verify_jwt = false
+
+[functions.summarize-profile]
+verify_jwt = false

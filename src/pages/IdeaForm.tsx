@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Spinner } from '../components/Spinner'
+import { startAnalysis } from '../lib/ai'
 import { supabase } from '../lib/supabase'
 import type { Idea } from '../lib/types'
 
@@ -54,6 +55,8 @@ export function IdeaForm() {
       : await supabase.from('ideas').insert(row).select('id').single()
     setBusy(false)
     if (res.error) return setError(`Could not save: ${res.error.message}`)
+    // The database queues a fresh analysis on every content change; kick it off without waiting.
+    startAnalysis(res.data.id)
     navigate(`/ideas/${res.data.id}`, { replace: true })
   }
 

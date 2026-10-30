@@ -67,3 +67,49 @@ export interface Comment {
 }
 
 export const COMMENT_SELECT = '*, author:members!comments_author_id_fkey(id, display_name, email, avatar_color)'
+
+export type AnalysisStatus = 'pending' | 'running' | 'done' | 'failed'
+
+export interface TeamFit {
+  members: { member_id: string; name: string; reason: string; role: string }[]
+  gaps: string[]
+}
+
+export interface Analysis {
+  idea_id: string
+  status: AnalysisStatus
+  overall_score: number | null
+  criteria: { key: string; name: string; weight: number; score: number | null; explanation: string }[] | null
+  similar_companies: { name: string; url: string; note: string }[] | null
+  verdict: string | null
+  recommendations: string[] | null
+  investor_questions: string[] | null
+  team_fit: TeamFit | null
+  error: string | null
+  model: string | null
+  analysed_at: string | null
+  updated_at: string
+}
+
+export interface Profile {
+  member_id: string
+  linkedin_path: string | null
+  experience_text: string
+  skills_summary: string
+  summary_status: 'idle' | 'running' | 'done' | 'failed'
+  summary_error: string | null
+  updated_at: string
+}
+
+export interface Criterion {
+  key: string
+  name: string
+  description: string
+  weight: number
+}
+
+export interface AiSettings {
+  model: string
+  instructions: string
+  criteria: Criterion[]
+}
