@@ -6,3 +6,6 @@ verify_jwt = false
 
 [functions.summarize-profile]
 verify_jwt = false
+
+[functions.invite-members]
+verify_jwt = false

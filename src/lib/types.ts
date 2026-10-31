@@ -8,6 +8,7 @@ export interface Member {
   avatar_color: string
   avatar_url: string | null
   intro_seen_at: string | null
+  joined_at: string | null
   role: Role
   created_at: string
 }

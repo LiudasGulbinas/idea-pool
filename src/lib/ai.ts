@@ -31,3 +31,22 @@ export function scoreColor(score: number | null | undefined) {
   if (score >= 3) return 'bg-amber-100 text-amber-800'
   return 'bg-red-100 text-red-700'
 }
+
+export type InviteResult = { email: string; status: 'invited' | 'reminded' | 'already-joined' | 'not-on-list' | 'failed'; error?: string }
+
+/** Emails login invites to members who haven't joined yet (admin only). */
+export async function sendInvites(emails: string[]): Promise<{ results?: InviteResult[]; error?: string }> {
+  const { data, error } = await supabase.functions.invoke('invite-members', { body: { emails, redirect_to: window.location.origin } })
+  if (error) return { error: await functionError(error) }
+  return data?.error ? { error: data.error as string } : { results: data.results as InviteResult[] }
+}
+
+export function inviteSummary(results: InviteResult[]) {
+  const sent = results.filter((r) => r.status === 'invited' || r.status === 'reminded').length
+  const failed = results.filter((r) => r.status === 'failed')
+  const joined = results.filter((r) => r.status === 'already-joined').length
+  const parts = [`Invite email sent to ${sent}.`]
+  if (joined) parts.push(`${joined} already joined.`)
+  if (failed.length) parts.push(`Failed for ${failed.map((f) => `${f.email} (${f.error})`).join(', ')}.`)
+  return { ok: failed.length === 0, text: parts.join(' ') }
+}

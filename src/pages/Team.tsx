@@ -25,7 +25,7 @@ export function Team() {
               <Avatar member={m} />
               <div className="min-w-0">
                 <div className="font-semibold">{memberName(m)}</div>
-                <div className="text-sm text-slate-500">{headline ?? (m.user_id ? 'No skills summary yet' : 'Invited, not logged in yet')}</div>
+                <div className="text-sm text-slate-500">{headline ?? (m.joined_at ? 'No skills summary yet' : 'Invited, not logged in yet')}</div>
               </div>
             </div>
             {skills.length > 0 && (
